@@ -46,7 +46,7 @@ public class Main extends DataBase {
                     isOk=true;
                     break;
                 case 5:
-                    random=generate(currentPlayers.size());
+                    random=generate(currentList.size());
                     user = currentList.get(random-1);
                     isOk=true;
                     break;
@@ -72,7 +72,7 @@ public class Main extends DataBase {
             for(Integer ele : currentPlayers.keySet())
                 System.out.print(currentPlayers.get(ele));
             System.out.println("are alive");
-            Player choosedMafia;
+            Player choosedMafia=null;
             Player choosedDetective=null;
             Player choosedHealer=null;
             ArrayList<Player> died = new ArrayList<>();
@@ -90,7 +90,8 @@ public class Main extends DataBase {
                         }
                     }
                 } else {
-                    choosedMafia = mafias.get(0).specialPower(null, currentList);
+                    if(mafias.size()>0)
+                        choosedMafia = mafias.get(0).specialPower(null, currentList);
                     System.out.println("Mafias have chosen their target");
                 }
                 if ( user!=null && user.getClass().equals(Detective.class)) {
@@ -116,10 +117,12 @@ public class Main extends DataBase {
             boolean isVoting =true;
             if(choosedDetective!=null) {
                 if (!choosedDetective.getClass().equals(Mafia.class)) {
-                    System.out.println(choosedDetective.toString() + " is not a Mafia");
+                    if(user!=null && user.getClass().equals(Detective.class))
+                        System.out.println(choosedDetective.toString() + " is not a Mafia");
                 } else {
                     isVoting = false;
-                    System.out.println(choosedDetective.toString() + " is a mafia");
+                    if(user!=null && user.getClass().equals(Detective.class))
+                        System.out.println(choosedDetective.toString() + " is a mafia");
                     currentPlayers.remove(choosedDetective.getId());
                     currentList.remove(choosedDetective);
                     mafias.remove((Mafia) choosedDetective);
@@ -156,8 +159,6 @@ public class Main extends DataBase {
                         totalMafiaHp += mafias.get(i).getHp();
                         if (mafias.get(i).getHp() > 0) x++;
                     }
-                    double minPowerReqd = choosedMafia.getHp() / x;
-                    double finalHpTOBeDivided = choosedMafia.getHp();
                     Mafia masterMafia = new Mafia(0, totalMafiaHp);
                     if (masterMafia.compareTo(choosedMafia) >= 0) {
                         choosedMafia.reduceHP(choosedMafia.getHp());
@@ -165,10 +166,16 @@ public class Main extends DataBase {
                         choosedMafia.reduceHP(masterMafia.getHp());
                     }
 
-                    if (x > 0) {
+                    double finalHpTOBeDivided = choosedMafia.getHp();
+                    double minPowerReqd = finalHpTOBeDivided / x;
+
+                    while (x > 0 && finalHpTOBeDivided>0) {
+                       double newFinalHpToBeDivided=0d;
+
                         for (int i = 0; i < mafias.size(); i++) {
                             if (mafias.get(i).getHp() < minPowerReqd) {
                                 finalHpTOBeDivided -= mafias.get(i).getHp();
+                                newFinalHpToBeDivided+=minPowerReqd-mafias.get(i).getHp();
                                 mafias.get(i).reduceHP(mafias.get(i).getHp());
                             }
                         }
@@ -177,13 +184,15 @@ public class Main extends DataBase {
                                 mafias.get(i).reduceHP(finalHpTOBeDivided / x);
                             }
                         }
+                        x=0;
+                        for (int i = 0; i < mafias.size(); i++) {
+                            if (mafias.get(i).getHp() > 0) x++;
+                        }
+                        finalHpTOBeDivided=newFinalHpToBeDivided;
+                        minPowerReqd=finalHpTOBeDivided/x;
                     }
                 }
 
-
-            if(choosedHealer!=null){
-                healers.get(0).specialPower(choosedHealer,currentList);
-            }
             if(choosedMafia!=null && choosedMafia.getHp()==0){
                 currentPlayers.remove(choosedMafia.getId());
                 currentList.remove(choosedMafia);
@@ -193,6 +202,8 @@ public class Main extends DataBase {
                     commoners.remove((Commoner)choosedMafia);
                 else if(choosedMafia.getClass().equals(Healer.class))
                     healers.remove((Healer) choosedMafia);
+                if (user!=null && user.equals(choosedMafia))
+                    user = null;
                 died.add(choosedMafia);
             }
             System.out.println("*******END OF ACTION*******");
@@ -226,8 +237,11 @@ public class Main extends DataBase {
                     healers.remove((Healer) votedOut);
                 else if (votedOut.getClass().equals(Mafia.class))
                     mafias.remove((Mafia) votedOut);
+
+                if (user!=null && user.equals(votedOut))
+                    user = null;
             }
-            System.out.println("*******END OF ROUND "+roundCounter+++" *********");
+            System.out.println("*******END OF ROUND "+roundCounter++ +" *********");
         }
         System.out.println("******GAME OVER*******");
         if(mafias.size()==0) System.out.println("Mafias have lost the game");
