@@ -1,6 +1,5 @@
 package Assignments.Assign3;
 
-import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -55,10 +54,10 @@ public class Main extends DataBase {
             }
         }
         data.setUser(user);
+
         System.out.println("You are "+user.toString());
-        if(user.getClass().equals(Commoner.class)){
+        if(user.getClass().equals(Commoner.class))
             System.out.println("You are Commoner ");
-        }
         else if(user.getClass().equals(Detective.class))
             System.out.println("You are Detective. All detectives are : "+detectives);
         else if(user.getClass().equals(Mafia.class))
@@ -75,7 +74,8 @@ public class Main extends DataBase {
             Player choosedMafia=null;
             Player choosedDetective=null;
             Player choosedHealer=null;
-            ArrayList<Player> died = new ArrayList<>();
+            Player died = null;
+
                 if ( user!=null && user.getClass().equals(Mafia.class)) {
                     while (true) {
                         System.out.println("Choose a player to kill");
@@ -94,6 +94,7 @@ public class Main extends DataBase {
                         choosedMafia = mafias.get(0).specialPower(null, currentList);
                     System.out.println("Mafias have chosen their target");
                 }
+
                 if ( user!=null && user.getClass().equals(Detective.class)) {
                     while (true) {
                         System.out.println("Choose a player to test");
@@ -114,6 +115,7 @@ public class Main extends DataBase {
                     System.out.println("Detectives have chosen someone to test");
 
                 }
+
             boolean isVoting =true;
             if(choosedDetective!=null) {
                 if (!choosedDetective.getClass().equals(Mafia.class)) {
@@ -128,10 +130,10 @@ public class Main extends DataBase {
                     mafias.remove((Mafia) choosedDetective);
                     if (user!=null && user.equals(choosedDetective))
                         user = null;
-                    died.add(choosedDetective);
 
                 }
             }
+
                 if ( user!=null && user.getClass().equals(Healer.class)) {
                     while (true) {
                         System.out.println("Choose a player to heal");
@@ -149,8 +151,6 @@ public class Main extends DataBase {
                     }
                     System.out.println("Healers have chosen someone to heal");
                 }
-                if(choosedHealer!=null)
-                    choosedHealer.increaseHP(500);
 
                 if(choosedMafia!=null) {
                     double totalMafiaHp = 0d;
@@ -193,6 +193,9 @@ public class Main extends DataBase {
                     }
                 }
 
+            if(choosedHealer!=null)
+                choosedHealer.increaseHP(500);
+
             if(choosedMafia!=null && choosedMafia.getHp()==0){
                 currentPlayers.remove(choosedMafia.getId());
                 currentList.remove(choosedMafia);
@@ -204,13 +207,14 @@ public class Main extends DataBase {
                     healers.remove((Healer) choosedMafia);
                 if (user!=null && user.equals(choosedMafia))
                     user = null;
-                died.add(choosedMafia);
+                died=choosedMafia;
             }
+
             System.out.println("*******END OF ACTION*******");
-            if(died.size()>0)
-                for (Player ele : died)
-                    System.out.println(ele.toString()+" has died");
+            if(died!=null)
+                    System.out.println(died.toString()+" has died");
             else System.out.println("No one died");
+            Player votedOut = choosedDetective;
             if(isVoting) {
                 Player voting = null;
                 if (user != null) {
@@ -225,24 +229,26 @@ public class Main extends DataBase {
                         }
                     }
                 }
-                Player votedOut = currentList.get(0).voting(currentList, voting);
-                System.out.println(votedOut.toString() + " has been voted out");
-                currentPlayers.remove(votedOut.getId());
-                currentList.remove(votedOut);
-                if (votedOut.getClass().equals(Detective.class))
-                    detectives.remove((Detective) votedOut);
-                else if (votedOut.getClass().equals(Commoner.class))
-                    commoners.remove((Commoner) votedOut);
-                else if (votedOut.getClass().equals(Healer.class))
-                    healers.remove((Healer) votedOut);
-                else if (votedOut.getClass().equals(Mafia.class))
-                    mafias.remove((Mafia) votedOut);
+                votedOut = currentList.get(0).voting(currentList, voting);
 
-                if (user!=null && user.equals(votedOut))
-                    user = null;
             }
+
+            System.out.println(votedOut.toString() + " has been voted out");
+            currentPlayers.remove(votedOut.getId());
+            currentList.remove(votedOut);
+            if (votedOut.getClass().equals(Detective.class))
+                detectives.remove((Detective) votedOut);
+            else if (votedOut.getClass().equals(Commoner.class))
+                commoners.remove((Commoner) votedOut);
+            else if (votedOut.getClass().equals(Healer.class))
+                healers.remove((Healer) votedOut);
+            else if (votedOut.getClass().equals(Mafia.class))
+                mafias.remove((Mafia) votedOut);
+            if (user!=null && user.equals(votedOut))
+                user = null;
             System.out.println("*******END OF ROUND "+roundCounter++ +" *********");
         }
+
         System.out.println("******GAME OVER*******");
         if(mafias.size()==0) System.out.println("Mafias have lost the game");
         else System.out.println("Mafias have won the game");
